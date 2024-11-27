@@ -1,6 +1,8 @@
 import pygame
 import GameObjects.MapModel
 import GameObjects.VehicleModel
+import pygame_menu
+from datetime import timedelta
 
 class gameModel:
     
@@ -11,6 +13,10 @@ class gameModel:
     keyPressedCounter = 0 #to avoid getting stop after a first key beeing up, this is an int and the vehicle will stop when this has the value 0
     vehicleSurface = GameObjects.VehicleModel
     mapSurface = GameObjects.MapModel
+    playerScore = 0
+    timerFont = pygame.font
+    timerPosition = (0, 0)
+    maxLevelTime = timedelta(minutes=2)
 
     def __init__(self, gameTitle, screenDimensions):
         pygame.init()
@@ -21,18 +27,18 @@ class gameModel:
         self.screen = pygame.display.set_mode( screenDimensions )
         pygame.display.set_caption(gameTitle)
         
+        self.timerFont = pygame.font.SysFont("freesans", 32)
+        
         self.vehicleSurface = GameObjects.VehicleModel.vehicleModel()
         self.mapSurface = GameObjects.MapModel.mapModel()
 
+    def startGame(self):
         self.game_running = True
-
-    def startGame(self, username):
         self.screen.fill("black")
         self.screen.blit(self.mapSurface.getMapSurface(), self.mapSurface.getMapPosition())
         self.screen.blit(self.vehicleSurface.getVehicleSurface(), self.vehicleSurface.getVehiclePosition())
         
         while self.game_running:
-        
             pygame.display.update()
             
             for event in pygame.event.get():
@@ -61,8 +67,7 @@ class gameModel:
                     
             #updates the screen when the vehicle is moving
             if self.keyPressedCounter > 0:
-                self.screen.fill("black")
-                        
+                self.screen.fill("black")        
                 #check if the vehicle is moving to the left
                 if self.vehicleSurface.vehicleDirection == self.vehicleSurface.Directions.LEFT:
                     #check if the vehicle is on the middle of the screen width
@@ -102,8 +107,33 @@ class gameModel:
                     
                 self.screen.blit(self.mapSurface.getMapSurface(), self.mapSurface.getMapPosition())
                 self.screen.blit(self.vehicleSurface.getVehicleSurface(), self.vehicleSurface.getVehiclePosition() )
+                
+            self.showCountDown()
 
-        self.quitGame()
+        self.showScore()
+        
+    def showCountDown(self):
+        timerBoard = pygame.Surface((100, 50))
+        timerBoard.fill("black")
+        self.screen.blit(timerBoard, self.timerPosition)
+        
+        millis = timedelta(milliseconds=pygame.time.get_ticks())
+        timeLeft = (self.maxLevelTime - millis)
+        result = ("%s:%s" % (str(int(timeLeft.seconds/60)), str(f"{timeLeft.seconds%60:02}")))
+        timerSurface = self.timerFont.render(result, True, "white")
+        self.screen.blit(timerSurface, self.timerPosition) #TODO: put the timer centered with the timer board
     
     def quitGame(self):
         exit()
+        
+    def showScore(self):
+        mainmenu = pygame_menu.Menu("", width = 400, height = 300)
+        mainmenu.add.label('Score: ' + str(self.playerScore))
+        mainmenu.add.label("")
+        mainmenu.add.button('Quit', pygame_menu.events.EXIT)
+
+        mainmenu.mainloop(self.screen)
+        
+        
+    # def pickContainer():
+        
