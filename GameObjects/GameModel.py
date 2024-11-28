@@ -15,7 +15,7 @@ class gameModel:
     mapSurface = GameObjects.MapModel
     playerScore = 0
     timerFont = pygame.font
-    timerPosition = (0, 0)
+    timerPosition = (100, 100)
     maxLevelTime = timedelta(minutes=2)
 
     def __init__(self, gameTitle, screenDimensions):
@@ -108,26 +108,37 @@ class gameModel:
                 self.screen.blit(self.mapSurface.getMapSurface(), self.mapSurface.getMapPosition())
                 self.screen.blit(self.vehicleSurface.getVehicleSurface(), self.vehicleSurface.getVehiclePosition() )
                 
-            self.showCountDown()
+            #calculate and show the count down
+            #show the score if the time is over
+            if self.calcCountDown():
+                self.showScore('GAME OVER')
 
-        self.showScore()
+        self.showScore('')
         
-    def showCountDown(self):
+    def calcCountDown(self):
+        #draw a timer board
         timerBoard = pygame.Surface((100, 50))
         timerBoard.fill("black")
-        self.screen.blit(timerBoard, self.timerPosition)
+        timerBoardRect = timerBoard.get_rect() 
+        timerBoardRect.center = self.timerPosition
+        self.screen.blit(timerBoard, timerBoardRect)
         
+        #calculate the time and show it over the timer board
         millis = timedelta(milliseconds=pygame.time.get_ticks())
         timeLeft = (self.maxLevelTime - millis)
         result = ("%s:%s" % (str(int(timeLeft.seconds/60)), str(f"{timeLeft.seconds%60:02}")))
         timerSurface = self.timerFont.render(result, True, "white")
-        self.screen.blit(timerSurface, self.timerPosition) #TODO: put the timer centered with the timer board
+        timerSurfaceRect = timerSurface.get_rect()
+        timerSurfaceRect.center = self.timerPosition
+        self.screen.blit(timerSurface, timerSurfaceRect)
+        
+        return timeLeft.seconds == 0
     
     def quitGame(self):
         exit()
         
-    def showScore(self):
-        mainmenu = pygame_menu.Menu("", width = 400, height = 300)
+    def showScore(self, title):
+        mainmenu = pygame_menu.Menu(title, width = 400, height = 300)
         mainmenu.add.label('Score: ' + str(self.playerScore))
         mainmenu.add.label("")
         mainmenu.add.button('Quit', pygame_menu.events.EXIT)
